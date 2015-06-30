@@ -9,7 +9,7 @@ def setUpDB():
 	listOfData = []
 	for line in variantData:
 		listOfData.append(line.split('	'))
-	IDcounter = 0
+	IDcounter = 2
 	for item in listOfData:
 		if item[-1]=='1\n':
 			toAddToDatabase = Line(IDcounter,int(item[1]),item[0],item[2],item[3],item[4],int(item[5]),item[7]) #constructor for database
@@ -32,7 +32,7 @@ def formatList(listOfObjects):
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://db_user:password@my-db-instance.coekoehxjoxi.us-west-2.rds.amazonaws.com/my_database'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://db_user:password@my-db-instance.coekoehxjoxi.us-west-2.rds.amazonaws.com/my_database'
 db = SQLAlchemy(app)
 
 class Line(db.Model):
@@ -72,6 +72,7 @@ db.create_all()
 db.session.commit()
 
 if Line.query.first()==None:
+	print("im here!")
 	setUpDB()
 
 @app.route('/')
@@ -80,14 +81,14 @@ def root():
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
-    db.remove()
+    db.session.remove()
 
 @app.route('/data')
 def serveUp():
 	return render_template('data.html',jsonList=formatList(Line.query.all()))
 
 if __name__ == '__main__':
-	app.run(debug=True)
+	app.run(debug=True,host='0.0.0.0',port=80)
 	
 
 
